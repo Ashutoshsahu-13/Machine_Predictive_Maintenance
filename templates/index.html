@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    /* 5: "#F1F2FF",
+    25: "#DBDDEA",
+    50: "#C5C7D4",
+    100: "#AFB2BF",
+    200: "#999DAA",
+    300: "#838894",
+    400: "#6E727F",
+    500: "#585D69",
+    600: "#424854",
+    700: "#2C333F",
+    800: "#161D29",
+    900: "#000814", */
+
+    .container {
+        width: 100vw;
+        height: 100vh;
+        background-color: #161D29;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        flex-direction: column;
+    }
+
+    .box {
+        width: 25%;
+        height: 70%;
+        /* background-color: #2C333F; */
+        /* border: 2px solid rgb(23, 17, 17); */
+        border-radius: 10px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: 0.4rem;
+    }
+    .input-row {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            gap: 1rem;
+        }
+
+        input[type='text'] {
+            border-radius: 5px;
+            outline: none;
+            padding: 0.4rem 1rem;
+            font-size: 1rem;
+            background-color: #424854;
+            border: none;
+            color: #DBDDEA;
+            width: 48%;
+        }
+
+    .btn {
+        padding: 0.5rem 1rem;
+        width: 100%;
+        margin-top: 0.5rem;
+        color: black;
+        border: none;
+        background-color: #d6c61c;
+        border-radius: 5px;
+        text-transform: capitalize;
+        font-weight: bold;
+        font-size: large;
+    }
+
+    .btn:hover {
+        background-color: rgb(190, 187, 187);
+        transition: 0.5s;
+        cursor: pointer;
+        color: black;
+    }
+
+    #home-page {
+        text-align: center;
+        padding: 1rem 2rem;
+    }
+
+    .heading {
+        color: white;
+    }
+
+    .description {
+        padding-top: 1rem;
+        color: white;
+    }
+
+    .home-btn {
+        padding: 0.5rem 2rem;
+        margin-top: 1.5rem;
+        color: black;
+        border: none;
+        background-color: #d6c61c;
+        border-radius: 5px;
+        text-transform: capitalize;
+        font-weight: bold;
+        font-size: large;
+    }
+
+    .home-btn:hover {
+        background-color: rgb(190, 187, 187);
+        transition: 0.5s;
+        cursor: pointer;
+        color: black;
+    }
+
+    #result {
+            color: white;
+            padding: 1rem;
+            margin-top: 1rem;
+            text-align: center;
+        }
+</style>
+
+<body>
+    <div class="container">
+
+        <!-- home page  -->
+        <div id="home-page">
+            <h1 class="heading">Machine Predictive Maintenance</h1>
+            <p class="description">
+                Machine predictive maintenance is a proactive approach that uses advanced technologies like sensors, data analytics, and machine learning algorithms to predict when equipment or machinery is likely to fail. By continuously monitoring the performance and condition of machines, this system can identify patterns and anomalies that indicate potential issues before they escalate into costly breakdowns. It enables businesses to schedule maintenance activities at the most optimal times, reducing downtime, increasing operational efficiency, and extending the lifespan of equipment. Predictive maintenance helps organizations save costs on emergency repairs, improve safety, and maintain a seamless production process.
+            </p>
+            
+            <button id="home-button" class="home-btn">
+                Next
+            </button>
+        </div>
+
+        <!-- Form page  -->
+         <!-- Form page  -->
+         <form id="input-form" class="box" action="{{ url_for('predict') }}" method="post" style="display: none;">
+            <div class="input-row">
+                <input type="text" name="type" placeholder="Enter type M:1 L:2 H:0 " required="required">
+                
+            </div>
+            <div class="input-row">
+                <input type="text" name="Air temperature [K]" placeholder="Enter Air temperature [K]" required="required">
+             
+             </div>
+            <div class="input-row">
+                <input type="text" name="Process temperature [K]" placeholder="Enter Process temperature [K]" required="required">
+              
+            </div>
+            <div class="input-row">
+                <input type="text" name="Rotational speed [rpm]" placeholder="Enter Rotational speed [rpm]" required="required">
+               
+            </div>
+            <div class="input-row">
+                <input type="text" name="Torque [Nm]" placeholder="Enter Torque [Nm]" required="required">
+                
+            </div>
+            <div class="input-row">
+                <input type="text" name="Tool wear [min]" placeholder="Enter Tool wear [min]" required="required">
+               
+            </div>
+            <button type="submit" class="btn">Predict</button>
+            <button id="go-back-button" class="btn" type="button">Home</button>
+        </form>
+        <div id="result">
+            <h2>{{ prediction_text }}</h2>
+        </div>
+        <div id="result"></div>
+    </div>
+    
+    <script>
+        const homePage = document.getElementById("home-page");
+        const homePageButton = document.getElementById("home-button");
+        const inputForm = document.getElementById("input-form");
+        const goToHomePageButton = document.getElementById("go-back-button");
+        const resultDiv = document.getElementById("result");
+
+        function changePageHandler() {
+            homePage.style.display = 'none';
+            inputForm.style.display = 'flex';
+        }
+
+        function goToHomePageHandler() {
+            inputForm.style.display = 'none';
+            homePage.style.display = 'block';
+
+            resultDiv.innerHTML = ''; // Clear result when going back to home page
+        }
+
+        homePageButton.addEventListener('click',changePageHandler);
+        goToHomePageButton.addEventListener('click', goToHomePageHandler);
+
+        inputForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(inputForm);
+            const data = {};
+            formData.forEach((value, key) => (data[key] = value));
+            try {
+                const response = await fetch('{{ url_for("predict") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data),
+                });
+                const result = await response.json();
+                resultDiv.innerHTML = `<h2> ${result.prediction_text}</h2>`;
+            } catch (error) {
+                console.error('Error:', error);
+                resultDiv.innerHTML = `<h2>An error occurred during prediction.</h2>`;
+            }
+        });
+    </script>
+</body>
+
+</html>
+
